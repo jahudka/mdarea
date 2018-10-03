@@ -10,7 +10,7 @@
 
     var isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform),
         ctrlKey = isMac ? 'metaKey' : 'ctrlKey',
-        reInlineKey = /^[`*_[({<]$/,
+        reInlineKey = /^["'`*_[({<]$/,
         rePrefix = /^[ \t]*(?:(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?|>[ \t]*)*(?::[ \t]*)?/,
         reList = /(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?$/,
         reCleanIndent = /[-+*\[\]x\d.]/g,
@@ -104,28 +104,30 @@
 
         _handleKey: function (evt) {
             if (this._reKey.test(evt.key)) {
-                evt.preventDefault();
-
                 var prefix = evt.target.value.substring(0, evt.target.selectionStart),
                     selection = evt.target.value.substring(evt.target.selectionStart, evt.target.selectionEnd),
                     postfix = evt.target.value.substring(evt.target.selectionEnd);
 
                 if (evt.key === 'Enter') {
                     handleEnterKey(this._elem, prefix, selection, postfix, evt.shiftKey);
-                } else if (evt.key === 'Tab' || evt.key === 'i' && evt[ctrlKey]) {
+                } else if (evt.key === 'Tab' && !evt.shiftKey || evt.key === 'i' && evt[ctrlKey]) {
                     handleIndentKey(this._elem, prefix, selection, postfix, this._indent);
                 } else if (evt.key === 'Tab' && evt.shiftKey || evt.key === 'o' && evt[ctrlKey]) {
                     handleOutdentKey(this._elem, prefix, selection, postfix, this._indent, this._reOutdent);
                 } else if (reInlineKey.test(evt.key)) {
                     handleInlineKey(this._elem, prefix, selection, postfix, evt.key);
+                } else {
+                    return;
                 }
+
+                evt.preventDefault();
             }
         }
     };
 
 
     function makeKeyRe(tab, inline) {
-        return new RegExp('^(?:Enter' + (tab ? '|Tab' : '') + '|[io' + (inline ? '`*_([{<' : '') + '])$');
+        return new RegExp('^(?:Enter' + (tab ? '|Tab' : '') + '|[io' + (inline ? '"\'`*_([{<' : '') + '])$');
     }
 
 
@@ -164,7 +166,7 @@
         if (selection) {
             selection = selection.replace(reMkIndent, indent);
         } else {
-            selection = indent;
+            prefix += indent;
             s += indent.length;
         }
 

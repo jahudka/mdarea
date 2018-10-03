@@ -83,6 +83,10 @@
             this._reKey = makeKeyRe(false, this._useInline);
         },
 
+        isInlineEnabled: function() {
+            return this._useInline;
+        },
+
         enableInline: function () {
             this._useInline = true;
             this._reKey = makeKeyRe(this._useTab, true);

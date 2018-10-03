@@ -6,12 +6,19 @@
         "type": "vcs",
         "url": "https://github.com/jahudka/mdarea"
     },
-    "version": "0.0.2",
+    "version": "0.0.3",
     "main": "mdarea.min.js",
     "devDependencies": {
         "gulp": "^4.0.0",
         "gulp-rename": "^1.4.0",
         "gulp-sourcemaps": "^2.6.4",
         "gulp-uglify": "^3.0.1"
-    }
+    },
+    "files": [
+        "mdarea.js",
+        "mdarea.min.js",
+        "mdarea.min.map",
+        "package.json",
+        "README.md"
+    ]
 }

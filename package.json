@@ -1,0 +1,17 @@
+{
+    "name": "mdarea",
+    "author": "jahudka <me@subsonic.cz>",
+    "license": "MIT",
+    "repository": {
+        "type": "vcs",
+        "url": "https://github.com/jahudka/mdarea"
+    },
+    "version": "0.0.1",
+    "main": "mdarea.min.js",
+    "devDependencies": {
+        "gulp": "^4.0.0",
+        "gulp-rename": "^1.4.0",
+        "gulp-sourcemaps": "^2.6.4",
+        "gulp-uglify": "^3.0.1"
+    }
+}

@@ -132,13 +132,9 @@
 
 
     function handleEnterKey (elem, prefix, selection, postfix, shift) {
-        if (selection) {
-            return;
-        }
+        var info = !selection ? getLineInfo(prefix) : null;
 
-        var info = getLineInfo(prefix);
-
-        if (info.prefix) {
+        if (!selection && info.prefix) {
             if (!shift && info.prefix === info.line) {
                 prefix = prefix.substring(0, info.offset) + stripLast(info.prefix);
             } else if (!shift && isList(info.prefix)) {
@@ -150,7 +146,7 @@
             prefix += "\n";
         }
 
-        apply(elem, prefix + postfix, prefix.length, 0);
+        apply(elem, prefix + postfix, prefix.length);
     }
 
     function handleIndentKey (elem, prefix, selection, postfix, indent) {
@@ -160,6 +156,9 @@
         if (n < s) {
             selection = prefix.substring(n) + selection;
             prefix = prefix.substring(0, n);
+        }
+
+        if (n < s || !selection) {
             s += indent.length;
         }
 
@@ -167,10 +166,9 @@
             selection = selection.replace(reMkIndent, indent);
         } else {
             prefix += indent;
-            s += indent.length;
         }
 
-        apply(elem, prefix + selection + postfix, s, selection.length);
+        apply(elem, prefix + selection + postfix, s, n + selection.length);
     }
 
     function handleOutdentKey (elem, prefix, selection, postfix, indent, reOutdent) {
@@ -186,22 +184,32 @@
             }
         }
 
-        apply(elem, prefix + selection.replace(reOutdent, '') + postfix, s, selection.length);
+        selection = selection.replace(reOutdent, '');
+        apply(elem, prefix + selection + postfix, s, n + selection.length);
     }
 
     function handleInlineKey (elem, prefix, selection, postfix, key) {
-        apply(
-            elem,
-            prefix + key + selection + (parentheses[key] || key) + postfix,
-            prefix.length + 1,
-            selection.length
-        );
+        if (!selection && !(key in parentheses) && postfix.charAt(0) === key) {
+            apply(elem, prefix + postfix, prefix.length + 1);
+        } else {
+            apply(
+                elem,
+                prefix + key + selection + (parentheses[key] || key) + postfix,
+                prefix.length + 1,
+                prefix.length + 1 + selection.length
+            );
+        }
     }
 
-    function apply(elem, value, s, n) {
+    function apply(elem, value, s, e) {
         elem.value = value;
         elem.selectionStart = s;
-        elem.selectionEnd = s + n;
+        elem.selectionEnd = arguments.length > 3 ? e : s;
+
+        if ('InputEvent' in window) try {
+            var evt = new InputEvent('input');
+            elem.dispatchEvent(evt);
+        } catch (e) { }
     }
 
     function getLineInfo(str) {

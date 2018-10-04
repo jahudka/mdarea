@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>MarkdownArea - the tiniest Markdown editor for the Web</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous" />
+        <style type="text/css">
+            .ctrl-key::before {
+                content: 'Ctrl';
+            }
+
+            body.mac .ctrl-key::before {
+                font-size: 1.7em;
+                line-height: 1;
+                vertical-align: middle;
+                content: '⌘';
+            }
+        </style>
+        <script type="application/javascript" src="/mdarea.min.js"></script>
+    </head>
+    <body class="pb-5">
+        <script type="application/javascript">/mac|ipad|iphone|ipod/i.test(navigator.platform) && document.body.classList.add('mac');</script>
+
+        <div class="container">
+            <h1 class="my-5">MarkdownArea <small class="text-muted">by @jahůdka</small></h1>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <textarea id="mdarea" class="form-control" cols="80" rows="15" autofocus># Hello!
+
+This is a live demo of [MarkdownArea] - the tiniest Markdown editor for the Web.
+
+To try the features, just start typing anywhere in this textarea! For example, you can:
+ - Try selecting some text and hitting the *, _ or ` key
+ - Try pressing the Tab key with and without the Shift key
+ - Try putting the caret at the end of this line and hitting enter
+
+[MarkdownArea]: https://github.com/jahudka/mdarea</textarea>
+                </div>
+                <div class="col-sm-6">
+                    <h3>Options:</h3>
+
+                    <ul id="options" class="pl-3">
+                        <li class="form-check">
+                            <input type="checkbox" id="o-use-tab" class="form-check-input" checked value="use_tab" />
+                            <label for="o-use-tab" class="form-check-label">
+                                Use the <code>Tab</code> key for indentation
+                            </label>
+                            <small class="form-text text-muted">
+                                Indentation will always work using <code><span class="ctrl-key"></span>+I</code>
+                                and <code><span class="ctrl-key"></span>+O</code>.
+                            </small>
+                        </li>
+                        <li class="form-check">
+                            <input type="checkbox" id="o-enable-inline" class="form-check-input" checked value="enable_inline" />
+                            <label for="o-enable-inline" class="form-check-label">
+                                Enable inline helpers
+                            </label>
+                            <small class="form-text text-muted">
+                                Inline helpers include inserting pairs of <code>*</code>, <code>_</code>
+                                and <code>`</code> characters<br />and inserting matching closing parentheses.
+                            </small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <script type="application/javascript">
+            (function() {
+            	var editor = new MarkdownArea(document.getElementById('mdarea'));
+
+            	document.getElementById('options').addEventListener('change', function (evt) {
+                    switch (evt.target.value) {
+                        case 'use_tab': evt.target.checked ? editor.useTab() : editor.ignoreTab(); break;
+                        case 'enable_inline': evt.target.checked ? editor.enableInline() : editor.disableInline(); break;
+                    }
+				});
+            })();
+        </script>
+    </body>
+</html>

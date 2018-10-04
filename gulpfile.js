@@ -4,7 +4,7 @@ const gulp = require('gulp'),
     rename = require('gulp-rename');
 
 
-gulp.task('default', function () {
+gulp.task('build', function () {
     return gulp.src('mdarea.js')
         .pipe(sourcemaps.init())
         .pipe(uglify())
@@ -14,3 +14,9 @@ gulp.task('default', function () {
         }))
         .pipe(gulp.dest('.'));
 });
+
+gulp.task('watch', function () {
+    return gulp.watch(['mdarea.js'], gulp.series('build'));
+});
+
+gulp.task('default', gulp.series('build'));

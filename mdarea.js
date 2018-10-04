@@ -109,7 +109,7 @@
                     selection = evt.target.value.substring(evt.target.selectionStart, evt.target.selectionEnd),
                     postfix = evt.target.value.substring(evt.target.selectionEnd);
 
-                if (evt.key === 'Enter') {
+                if (evt.key === 'Enter' && !evt.ctrlKey && !evt.altKey && !evt.metaKey) {
                     handleEnterKey(this._elem, prefix, selection, postfix, evt.shiftKey);
                 } else if (evt.key === 'Tab' && !evt.shiftKey || evt.key === 'i' && evt[ctrlKey]) {
                     handleIndentKey(this._elem, prefix, selection, postfix, this._indent);

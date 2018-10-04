@@ -8,6 +8,8 @@ There's no GUI, no WYSIWYG features, and no preview.
 
 It is also quite small at 1.33 KB gzipped.
 
+Check out the [demo]!
+
 # Installation
 
 ```bash
@@ -91,4 +93,5 @@ Initialise your textareas like this:
 
 
 [Releases]: https://github.com/jahudka/mdarea/releases
+[demo]: https://jahudka.github.io/mdarea
 [keyboardevent-key-polyfill]: https://github.com/cvan/keyboardevent-key-polyfill

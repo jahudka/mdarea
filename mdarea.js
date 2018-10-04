@@ -10,7 +10,7 @@
 
     var isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform),
         ctrlKey = isMac ? 'metaKey' : 'ctrlKey',
-        reInlineKey = /^["'`*_[({<]$/,
+        reInlineKey = /^["'`*_[({<>})\]]$/,
         rePrefix = /^[ \t]*(?:(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?|>[ \t]*)*(?::[ \t]*)?/,
         reList = /(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?$/,
         reCleanIndent = /[-+*\[\]x\d.]/g,
@@ -18,7 +18,8 @@
         reIncrement = /(\d+)\.(?=[ \t]+$)/,
         reStripLast = /(?:(?:^[ \t]+)?(?:[-+*]|\d+\.|[>:])(?:[ \t]+\[[ x]])?[ \t]*|^[ \t]+)$/,
         reMkIndent = /^(?!$)/mg,
-        parentheses = {'[': ']', '(': ')', '{': '}', '<': '>'};
+        openingParens = {'[': ']', '(': ')', '{': '}', '<': '>'},
+        closingParens = {']': '[', ')': '(', '}': '{', '>': '<'};
 
 
     function MarkdownArea(elem) {
@@ -127,7 +128,7 @@
 
 
     function makeKeyRe(tab, inline) {
-        return new RegExp('^(?:Enter' + (tab ? '|Tab' : '') + '|[io' + (inline ? '"\'`*_([{<' : '') + '])$');
+        return new RegExp('^(?:Enter' + (tab ? '|Tab' : '') + '|[io' + (inline ? '"\'`*_([{<>}\\])' : '') + '])$');
     }
 
 
@@ -189,12 +190,14 @@
     }
 
     function handleInlineKey (elem, prefix, selection, postfix, key) {
-        if (!selection && !(key in parentheses) && postfix.charAt(0) === key) {
+        if (!selection && !(key in openingParens) && postfix.charAt(0) === key) {
             apply(elem, prefix + postfix, prefix.length + 1);
+        } else if (!selection && key in closingParens) {
+            apply(elem, prefix + key + postfix, prefix.length + 1);
         } else {
             apply(
                 elem,
-                prefix + key + selection + (parentheses[key] || key) + postfix,
+                prefix + (closingParens[key] || key) + selection + (openingParens[key] || key) + postfix,
                 prefix.length + 1,
                 prefix.length + 1 + selection.length
             );

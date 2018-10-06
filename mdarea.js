@@ -169,7 +169,7 @@
             prefix += indent;
         }
 
-        apply(elem, prefix + selection + postfix, s, n + selection.length);
+        apply(elem, prefix + selection + postfix, s, selection ? n + selection.length : s);
     }
 
     function handleOutdentKey (elem, prefix, selection, postfix, indent, reOutdent) {

@@ -11,6 +11,7 @@
     var isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform),
         ctrlKey = isMac ? 'metaKey' : 'ctrlKey',
         reInlineKey = /^["'`*_[({<>})\]]$/,
+        reDoubledInline = /[*_]/,
         rePrefix = /^[ \t]*(?:(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?|>[ \t]*)*(?::[ \t]*)?/,
         reList = /(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?$/,
         reCleanIndent = /[-+*\[\]x\d.]/g,
@@ -18,6 +19,7 @@
         reIncrement = /(\d+)\.(?=[ \t]+$)/,
         reStripLast = /(?:(?:^[ \t]+)?(?:[-+*]|\d+\.|[>:])(?:[ \t]+\[[ x]])?[ \t]*|^[ \t]+)$/,
         reMkIndent = /^(?!$)/mg,
+        codeBlocks = {'`': /^``$/m, '~': /^~~$/m},
         openingParens = {'[': ']', '(': ')', '{': '}', '<': '>'},
         closingParens = {']': '[', ')': '(', '}': '{', '>': '<'};
 
@@ -191,9 +193,11 @@
 
     function handleInlineKey (elem, prefix, selection, postfix, key) {
         if (!selection && !(key in openingParens) && postfix.charAt(0) === key) {
-            apply(elem, prefix + postfix, prefix.length + 1);
+            apply(elem, prefix + (reDoubledInline.test(key) ? key + key : '') + postfix, prefix.length + 1);
         } else if (!selection && key in closingParens) {
             apply(elem, prefix + key + postfix, prefix.length + 1);
+        } else if (!selection && key in codeBlocks && codeBlocks[key].test(prefix)) {
+            apply(elem, prefix + key + "language\n" + key + key + key + (postfix.charAt(0) !== "\n" ? "\n" : '') + postfix, prefix.length + 1, prefix.length + 9);
         } else {
             apply(
                 elem,

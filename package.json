@@ -6,7 +6,7 @@
         "type": "vcs",
         "url": "https://github.com/jahudka/mdarea"
     },
-    "version": "0.0.8",
+    "version": "0.0.9",
     "main": "mdarea.min.js",
     "devDependencies": {
         "gulp": "^4.0.0",

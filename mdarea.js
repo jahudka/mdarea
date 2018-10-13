@@ -106,7 +106,7 @@
         },
 
         _handleKey: function (evt) {
-            if (this._reKey.test(evt.key)) {
+            if (!evt.defaultPrevented && this._reKey.test(evt.key)) {
                 var prefix = evt.target.value.substring(0, evt.target.selectionStart),
                     selection = evt.target.value.substring(evt.target.selectionStart, evt.target.selectionEnd),
                     postfix = evt.target.value.substring(evt.target.selectionEnd);
@@ -194,7 +194,7 @@
     function handleInlineKey (elem, prefix, selection, postfix, key) {
         if (!selection && !(key in openingParens) && postfix.charAt(0) === key) {
             apply(elem, prefix + (reDoubledInline.test(key) ? key + key : '') + postfix, prefix.length + 1);
-        } else if (!selection && key in closingParens) {
+        } else if (!selection && (key === "'" || key in closingParens)) {
             apply(elem, prefix + key + postfix, prefix.length + 1);
         } else if (!selection && key in codeBlocks && codeBlocks[key].test(prefix)) {
             apply(elem, prefix + key + "language\n" + key + key + key + (postfix.charAt(0) !== "\n" ? "\n" : '') + postfix, prefix.length + 1, prefix.length + 9);

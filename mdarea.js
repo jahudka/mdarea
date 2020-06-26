@@ -10,7 +10,6 @@
 
     var isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform),
         ctrlKey = isMac ? 'metaKey' : 'ctrlKey',
-        reInlineKey = /^["'`*_[({<>})\]]$/,
         reDoubledInline = /[*_]/,
         rePrefix = /^[ \t]*(?:(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?|>[ \t]*)*(?::[ \t]*)?/,
         reList = /(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?$/,
@@ -23,13 +22,17 @@
         openingParens = {'[': ']', '(': ')', '{': '}', '<': '>'},
         closingParens = {']': '[', ')': '(', '}': '{', '>': '<'};
 
+    var defaultKeymap = {
+        enter: ['Enter', 'Shift+Enter'],
+        indent: ['Tab', 'Ctrl+m'],
+        outdent: ['Shift+Tab', 'Ctrl+Shift+m'],
+        inline: ['"', "'", '`', '*', '_', '[', ']', '(', ')', '{', '}', '<', '>'],
+    };
 
-    function MarkdownArea(elem) {
-        this._useTab = true;
-        this._useInline = true;
-        this._indent = '    ';
-        this._reOutdent = /^[ ]{4}/mg;
-        this._reKey = makeKeyRe(true, true);
+
+    function MarkdownArea(elem, options) {
+        this._options = normalizeOptions(options);
+        this._reOutdent = new RegExp('^' + this._options.indent, 'mg');
         this._handleKey = this._handleKey.bind(this);
         this.setElement(elem);
     }
@@ -58,92 +61,152 @@
             this._elem.value = value;
         },
 
-        getIndent: function () {
-            return this._indent;
-        },
-
-        setIndent: function (indent) {
-            if (typeof indent === 'number') {
-                this._indent = new Array(indent + 1).join(' ');
-            } else {
-                this._indent = (indent + '').replace(/[^ \t]/g, ' ');
-            }
-
-            this._reOutdent = new RegExp('^' + this._indent, 'mg');
-        },
-
-        isTabUsed: function () {
-            return this._useTab;
-        },
-
-        useTab: function () {
-            this._useTab = true;
-            this._reKey = makeKeyRe(true, this._useInline);
-        },
-
-        ignoreTab: function () {
-            this._useTab = false;
-            this._reKey = makeKeyRe(false, this._useInline);
-        },
-
-        isInlineEnabled: function() {
-            return this._useInline;
-        },
-
-        enableInline: function () {
-            this._useInline = true;
-            this._reKey = makeKeyRe(this._useTab, true);
-        },
-
-        disableInline: function () {
-            this._useInline = false;
-            this._reKey = makeKeyRe(this._useTab, false);
-        },
-
         destroy: function () {
             this._elem.removeEventListener('keydown', this._handleKey);
-            this._elem = this._reKey = this._handleKey = this._indent = this._reOutdent = null;
+            this._elem = this._options = this._reOutdent = this._handleKey = null;
         },
 
         _handleKey: function (evt) {
-            if (!evt.defaultPrevented && this._reKey.test(evt.key)) {
-                var prefix = evt.target.value.substring(0, evt.target.selectionStart),
-                    selection = evt.target.value.substring(evt.target.selectionStart, evt.target.selectionEnd),
-                    postfix = evt.target.value.substring(evt.target.selectionEnd);
+            if (!evt.defaultPrevented) {
+                var shortcut = this._options.keyMap.find(function(shortcut) {
+                    return matchesKey(evt, shortcut.key);
+                });
 
-                if (evt.key === 'Enter' && !evt.ctrlKey && !evt.altKey && !evt.metaKey) {
-                    handleEnterKey(this._elem, prefix, selection, postfix, evt.shiftKey);
-                } else if (evt.key === 'Tab' && !evt.shiftKey || evt.key === 'i' && evt[ctrlKey]) {
-                    handleIndentKey(this._elem, prefix, selection, postfix, this._indent);
-                } else if (evt.key === 'Tab' && evt.shiftKey || evt.key === 'o' && evt[ctrlKey]) {
-                    handleOutdentKey(this._elem, prefix, selection, postfix, this._indent, this._reOutdent);
-                } else if (reInlineKey.test(evt.key)) {
-                    handleInlineKey(this._elem, prefix, selection, postfix, evt.key);
-                } else {
-                    return;
+                if (shortcut) {
+                    var prefix = evt.target.value.substring(0, evt.target.selectionStart),
+                        selection = evt.target.value.substring(evt.target.selectionStart, evt.target.selectionEnd),
+                        postfix = evt.target.value.substring(evt.target.selectionEnd);
+
+                    switch (shortcut.action) {
+                        case 'enter':
+                            handleEnterKey(this._elem, prefix, selection, postfix, this._options.indent, evt.shiftKey);
+                            break;
+                        case 'indent':
+                            handleIndentKey(this._elem, prefix, selection, postfix, this._options.indent);
+                            break;
+                        case 'outdent':
+                            handleOutdentKey(this._elem, prefix, selection, postfix, this._options.indent, this._reOutdent);
+                            break;
+                        case 'inline':
+                            handleInlineKey(this._elem, prefix, selection, postfix, evt.key);
+                            break;
+                    }
+
+                    evt.preventDefault();
                 }
-
-                evt.preventDefault();
             }
         }
     };
 
-
-    function makeKeyRe(tab, inline) {
-        return new RegExp('^(?:Enter' + (tab ? '|Tab' : '') + '|[io' + (inline ? '"\'`*_([{<>}\\])' : '') + '])$');
+    function normalizeOptions(options) {
+        options || (options = {});
+        options.keyMap = normalizeKeyMap(options.keyMap);
+        options.indent = normalizeIndent(options.indent || '    ');
+        return options;
     }
 
+    function normalizeKeyMap(keyMap) {
+        keyMap || (keyMap = {});
+        var knownKeys = {};
+        var list = [];
 
-    function handleEnterKey (elem, prefix, selection, postfix, shift) {
+        for (var action in defaultKeymap) if (defaultKeymap.hasOwnProperty(action)) {
+            var keys = keyMap[action] || defaultKeymap[action];
+
+            if (!Array.isArray(keys)) {
+                keys = keys.toString().trim().split(/\s*[|,]\s*/g);
+            }
+
+            list.push.apply(list, keys.map(function(key) {
+                key = normalizeKey(key);
+                key.key in knownKeys || (knownKeys[key.key] = 0);
+                ++knownKeys[key.key];
+
+                return {
+                    key: key,
+                    action: action
+                };
+            }));
+        }
+
+        list.forEach(function(shortcut) {
+            if (knownKeys[shortcut.key.key] > 1) {
+                completeModifiers(shortcut.key);
+            }
+        });
+
+        return list;
+    }
+
+    function normalizeKey(key) {
+        var opts = {};
+
+        key.trim().split(/\s*\+\s*/g).forEach(function(k) {
+            switch (k.toLowerCase()) {
+                case 'ctrl':
+                case 'cmd':
+                    opts[ctrlKey] = true;
+                    break;
+                case 'shift':
+                    opts.shiftKey = true;
+                    break;
+                case 'alt':
+                    opts.altKey = true;
+                    break;
+                default:
+                    opts.key = k;
+            }
+        });
+
+        return opts;
+    }
+
+    function completeModifiers(key) {
+        'ctrlKey' in key || (key.ctrlKey = false);
+        'altKey' in key || (key.altKey = false);
+        'shiftKey' in key || (key.shiftKey = false);
+        'metaKey' in key || (key.metaKey = false);
+    }
+
+    function normalizeIndent(indent) {
+        if (typeof indent === 'number') {
+            return new Array(indent + 1).join(' ');
+        } else {
+            return (indent + '').replace(/[^ \t]/g, ' ');
+        }
+    }
+
+    function matchesKey(evt, key) {
+        for (var prop in key) if (key.hasOwnProperty(prop)) {
+            if (evt[prop] !== key[prop]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function handleEnterKey (elem, prefix, selection, postfix, indent, shift) {
         var info = !selection ? getLineInfo(prefix) : null;
 
-        if (!selection && info.prefix) {
-            if (!shift && info.prefix === info.line) {
-                prefix = prefix.substring(0, info.offset) + stripLast(info.prefix);
-            } else if (!shift && isList(info.prefix)) {
-                prefix += "\n" + increment(info.prefix);
+        if (!selection) {
+            if (info.line && info.line.charAt(info.line.length - 1) in openingParens) {
+                var base = (info.prefix ? toIndent(info.prefix, true) : '');
+                postfix = "\n" + base + postfix;
+
+                if (!shift) {
+                    prefix += "\n" + base + indent;
+                }
+            } else if (info.prefix) {
+                if (!shift && info.prefix === info.line) {
+                    prefix = prefix.substring(0, info.offset) + stripLast(info.prefix);
+                } else if (!shift && isList(info.prefix)) {
+                    prefix += "\n" + increment(info.prefix);
+                } else {
+                    prefix += "\n" + toIndent(info.prefix, shift);
+                }
             } else {
-                prefix += "\n" + toIndent(info.prefix, shift);
+                prefix += "\n";
             }
         } else {
             prefix += "\n";

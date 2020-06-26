@@ -7,6 +7,7 @@
         <title>MarkdownArea - the tiniest Markdown editor for the Web</title>
 
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet" />
         <style type="text/css">
             .ctrl-key::before {
                 content: 'Ctrl';
@@ -18,8 +19,12 @@
                 vertical-align: middle;
                 content: '⌘';
             }
+
+            #mdarea {
+                font-family: 'Source Code Pro', monospace;
+            }
         </style>
-        <script type="application/javascript" src="./mdarea.min.js"></script>
+        <script type="application/javascript" src="./mdarea.js"></script>
     </head>
     <body class="pb-5">
         <script type="application/javascript">/mac|ipad|iphone|ipod/i.test(navigator.platform) && document.body.classList.add('mac');</script>
@@ -28,7 +33,7 @@
             <h1 class="my-5">MarkdownArea <small class="text-muted">by @jahůdka</small></h1>
 
             <div class="row">
-                <div class="col-sm-6">
+                <div class="col-md-6">
                     <textarea id="mdarea" class="form-control" cols="80" rows="15" autofocus># Hello!
 
 This is a live demo of [MarkdownArea] - the tiniest Markdown editor for the Web.
@@ -38,9 +43,17 @@ To try the features, just start typing anywhere in this textarea! For example, y
  - Try pressing the Tab key with and without the Shift key
  - Try putting the caret at the end of this line and hitting enter
 
+Some of the more advanced features include:
+ 1. Code formatting helpers: try putting the caret between the
+    parentheses in the following code block and pressing enter:
+    ```js
+    if ('awesome' in window.MarkdownArea) {}
+    ```
+ 2. Also, numbered lists work as you'd expect..
+
 [MarkdownArea]: https://github.com/jahudka/mdarea</textarea>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-md-6 mt-4 mt-md-0">
                     <h3>Options:</h3>
 
                     <ul id="options" class="pl-3">
@@ -71,13 +84,27 @@ To try the features, just start typing anywhere in this textarea! For example, y
 
         <script type="application/javascript">
             (function() {
-            	var editor = new MarkdownArea(document.getElementById('mdarea'));
+            	var options = {
+            		keyMap: {}
+                };
+
+            	var elem = document.getElementById('mdarea');
+            	var editor = new MarkdownArea(elem, options);
 
             	document.getElementById('options').addEventListener('change', function (evt) {
+            		editor.destroy();
+
                     switch (evt.target.value) {
-                        case 'use_tab': evt.target.checked ? editor.useTab() : editor.ignoreTab(); break;
-                        case 'enable_inline': evt.target.checked ? editor.enableInline() : editor.disableInline(); break;
+                        case 'use_tab':
+                        	options.keyMap.indent = evt.target.checked ? ['Tab', 'Ctrl+m'] : ['Ctrl+m'];
+                        	options.keyMap.outdent = evt.target.checked ? ['Shift+Tab', 'Ctrl+Shift+m'] : ['Ctrl+m'];
+                        	break;
+                        case 'enable_inline':
+                        	options.keyMap.inline = evt.target.checked ? null : [];
+                        	break;
                     }
+
+                    editor = new MarkdownArea(elem, options);
 				});
             })();
         </script>

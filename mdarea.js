@@ -257,7 +257,7 @@
     function handleInlineKey (elem, prefix, selection, postfix, key) {
         if (!selection && !(key in openingParens) && postfix.charAt(0) === key) {
             apply(elem, prefix + (reDoubledInline.test(key) ? key + key : '') + postfix, prefix.length + 1);
-        } else if (!selection && (key === "'" || key in closingParens)) {
+        } else if (!selection && (key === "'" && !/^[\s"'<>`\[\]\(\){}\+\*\^\$\\\.\|]$|^$/.test(prefix.slice(-1)) || key in closingParens)) {
             apply(elem, prefix + key + postfix, prefix.length + 1);
         } else if (!selection && key in codeBlocks && codeBlocks[key].test(prefix)) {
             apply(elem, prefix + key + "language\n" + key + key + key + (postfix.charAt(0) !== "\n" ? "\n" : '') + postfix, prefix.length + 1, prefix.length + 9);

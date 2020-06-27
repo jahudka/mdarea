@@ -89,7 +89,7 @@
                             handleOutdentKey(this._elem, prefix, selection, postfix, this._options.indent, this._reOutdent);
                             break;
                         case 'inline':
-                            handleInlineKey(this._elem, prefix, selection, postfix, evt.key);
+                            handleInlineKey(this._elem, prefix, selection, postfix, evt.key, this._options.toggleInlineWrap);
                             break;
                     }
 
@@ -103,6 +103,7 @@
         options || (options = {});
         options.keyMap = normalizeKeyMap(options.keyMap);
         options.indent = normalizeIndent(options.indent || '    ');
+        options.toggleInlineWrap = options.toggleInlineWrap == null ? true : options.toggleInlineWrap;
         return options;
     }
 
@@ -255,13 +256,20 @@
         apply(elem, prefix + selection + postfix, s, n + selection.length);
     }
 
-    function handleInlineKey (elem, prefix, selection, postfix, key) {
+    function handleInlineKey (elem, prefix, selection, postfix, key, toggleInlineWrap) {
         if (!selection && !(key in openingParens) && postfix.charAt(0) === key) {
             apply(elem, prefix + (reDoubledInline.test(key) ? key + key : '') + postfix, prefix.length + 1);
         } else if (!selection && (key === "'" && !reSingleQuotePrefix.test(prefix) || key in closingParens)) {
             apply(elem, prefix + key + postfix, prefix.length + 1);
         } else if (!selection && key in codeBlocks && codeBlocks[key].test(prefix)) {
             apply(elem, prefix + key + "language\n" + key + key + key + (postfix.charAt(0) !== "\n" ? "\n" : '') + postfix, prefix.length + 1, prefix.length + 9);
+        } else if (toggleInlineWrap && key === prefix.slice(-1) && key === postfix.slice(0, 1)) {
+            apply(
+                elem,
+                prefix.slice(0, -1) + selection + postfix.slice(1),
+                prefix.length - 1,
+                prefix.length - 1 + selection.length
+            );
         } else {
             apply(
                 elem,

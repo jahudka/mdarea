@@ -63,8 +63,8 @@ Some of the more advanced features include:
                                 Use the <code>Tab</code> key for indentation
                             </label>
                             <small class="form-text text-muted">
-                                Indentation will always work using <code><span class="ctrl-key"></span>+I</code>
-                                and <code><span class="ctrl-key"></span>+O</code>.
+                                Indentation will always work using <code><span class="ctrl-key"></span>+M</code>
+                                and <code><span class="ctrl-key"></span>+Shift+M</code>.
                             </small>
                         </li>
                         <li class="form-check">
@@ -97,7 +97,7 @@ Some of the more advanced features include:
                     switch (evt.target.value) {
                         case 'use_tab':
                         	options.keyMap.indent = evt.target.checked ? ['Tab', 'Ctrl+m'] : ['Ctrl+m'];
-                        	options.keyMap.outdent = evt.target.checked ? ['Shift+Tab', 'Ctrl+Shift+m'] : ['Ctrl+m'];
+                        	options.keyMap.outdent = evt.target.checked ? ['Shift+Tab', 'Ctrl+Shift+m'] : ['Ctrl+Shift+m'];
                         	break;
                         case 'enable_inline':
                         	options.keyMap.inline = evt.target.checked ? null : [];

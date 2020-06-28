@@ -74,9 +74,9 @@
                 });
 
                 if (shortcut) {
-                    var prefix = evt.target.value.substring(0, evt.target.selectionStart),
-                        selection = evt.target.value.substring(evt.target.selectionStart, evt.target.selectionEnd),
-                        postfix = evt.target.value.substring(evt.target.selectionEnd);
+                    var prefix = this._elem.value.substring(0, this._elem.selectionStart),
+                        selection = this._elem.value.substring(this._elem.selectionStart, this._elem.selectionEnd),
+                        postfix = this._elem.value.substring(this._elem.selectionEnd);
 
                     switch (shortcut.action) {
                         case 'enter':

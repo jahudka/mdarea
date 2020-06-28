@@ -25,8 +25,8 @@
 
     var defaultKeymap = {
         enter: ['Enter', 'Shift+Enter'],
-        indent: ['Tab', 'Ctrl+m'],
-        outdent: ['Shift+Tab', 'Ctrl+Shift+m'],
+        indent: ['Tab', 'Cmd+m'],
+        outdent: ['Shift+Tab', 'Cmd+Shift+m'],
         inline: ['"', "'", '`', '*', '_', '[', ']', '(', ')', '{', '}', '<', '>'],
     };
 
@@ -102,7 +102,7 @@
     function normalizeOptions(options) {
         options || (options = {});
         options.keyMap = normalizeKeyMap(options.keyMap);
-        options.indent = normalizeIndent(options.indent || '    ');
+        options.indent = normalizeIndent(options.indent || 4);
         return options;
     }
 
@@ -144,15 +144,14 @@
 
         key.trim().split(/\s*\+\s*/g).forEach(function(k) {
             switch (k.toLowerCase()) {
-                case 'ctrl':
                 case 'cmd':
                     opts[ctrlKey] = true;
                     break;
-                case 'shift':
-                    opts.shiftKey = true;
-                    break;
+                case 'ctrl':
                 case 'alt':
-                    opts.altKey = true;
+                case 'shift':
+                case 'meta':
+                    opts[k.toLowerCase() + 'Key'] = true;
                     break;
                 default:
                     opts.key = k;
@@ -170,11 +169,11 @@
     }
 
     function normalizeIndent(indent) {
-        if (typeof indent === 'number') {
-            return new Array(indent + 1).join(' ');
-        } else {
-            return (indent + '').replace(/[^ \t]/g, ' ');
+        if (typeof indent !== 'number') {
+            indent = (indent + '').length;
         }
+
+        return new Array(indent + 1).join(' ');
     }
 
     function matchesKey(evt, key) {

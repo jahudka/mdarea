@@ -77,16 +77,6 @@ Some of the more advanced features include:
                                 and <code>`</code> characters<br />and inserting matching closing parentheses.
                             </small>
                         </li>
-                        <li class="form-check">
-                            <input type="checkbox" id="o-enable_toggle_inline_wrap" class="form-check-input" checked value="enable_toggle_inline_wrap" />
-                            <label for="o-enable_toggle_inline_wrap" class="form-check-label">
-                                Enable inline wrap toggle mode
-                            </label>
-                            <small class="form-text text-muted">
-                                If adding wrapping characters to an already wrapped selection, should the previous
-                                wrapping be removed?
-                            </small>
-                        </li>
                     </ul>
                 </div>
             </div>
@@ -111,9 +101,6 @@ Some of the more advanced features include:
                         	break;
                         case 'enable_inline':
                         	options.keyMap.inline = evt.target.checked ? null : [];
-                        	break;
-                        case 'enable_toggle_inline_wrap':
-                        	options.toggleInlineWrap = evt.target.checked;
                         	break;
                     }
 

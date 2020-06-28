@@ -14,6 +14,7 @@
         rePrefix = /^[ \t]*(?:(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?|>[ \t]*)*(?::[ \t]*)?/,
         reSingleQuotePrefix = /[-=\s"'`<>\[\](){}+*^$\\.|]$/,
         reList = /(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?$/,
+        reListEnd = /^(?:\n|$)/,
         reCleanIndent = /[-+*\[\]x\d.]/g,
         rePureIndent = /[^ \t]/g,
         reIncrement = /(\d+)\.(?=[ \t]+$)/,
@@ -198,7 +199,7 @@
                     prefix += "\n" + base + indent;
                 }
             } else if (info.prefix) {
-                if (!shift && info.prefix === info.line) {
+                if (!shift && info.prefix === info.line && reListEnd.test(postfix)) {
                     prefix = prefix.substring(0, info.offset) + stripLast(info.prefix);
                 } else if (!shift && isList(info.prefix)) {
                     prefix += "\n" + increment(info.prefix);

@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -eux
-mv .npmrc.release .npmrc
-npm publish

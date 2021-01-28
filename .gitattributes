@@ -1,8 +1,11 @@
+.ci export-ignore
+.editorconfig export-ignore
 .gitattributes export-ignore
 .gitignore export-ignore
-.editorconfig export-ignore
-.ci export-ignore
-gulpfile.js export-ignore
+.npmrc.release export-ignore
+dtsconfig.json export-ignore
+index.html export-ignore
 package.json export-ignore
 package-lock.json export-ignore
-index.html export-ignore
+rollup.config.js export-ignore
+tsconfig.json export-ignore

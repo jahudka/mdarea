@@ -6,14 +6,14 @@ for Markdown-enabled `<textarea>` elements.
 It only supports a handful of features, mostly to save you keystrokes.
 There's no GUI, no WYSIWYG features, and no preview.
 
-It is also quite small at 1.94 KB gzipped.
+It is also quite small at 2.5 KB minified & gzipped.
 
 Check out the [demo]!
 
 # Installation
 
 ```bash
-npm install mdarea
+npm install --save mdarea
 ```
 
 Or you can download the raw archive from the [Releases] section.
@@ -21,6 +21,15 @@ Or you can download the raw archive from the [Releases] section.
 Add the `mdarea.js` or `mdarea.min.js` script to your page. You might
 need to use something like the [keyboardevent-key-polyfill] if you wish
 to support older browsers.
+
+Since version 2.0 `mdarea` is written in TypeScript and therefore includes
+native typings out of the box. The package exposes the editor class
+as the default export and type declarations for the options object
+are available as named exports:
+
+```typescript
+import MarkdownArea, { MarkdownAreaOptions } from 'mdarea';
+```
 
 Initialise your textareas like this:
 
@@ -53,11 +62,12 @@ Initialise your textareas like this:
 
  - `editor.setValue(value)`
 
-   Sets the editor contents. Same as `editor.getElement().value = value`.
+   Sets the editor contents. Use this instead of `editor.getElement().value = value`,
+   otherwise undo history will break!
 
  - `editor.destroy()`
 
-   Destroys the editor instance. This will unbind the keydown event handler
+   Destroys the editor instance. This will unbind all event handlers
    and nullify all references to objects which might keep the editor
    in memory including the active textarea element. Remember to clear
    the reference to the editor instance that you kept until calling the
@@ -74,7 +84,7 @@ Initialise your textareas like this:
    How many spaces to use for indentation. If you specify a string,
    its length will be used - beware that the tab character has
    a length of 1!
-   
+
  - `keyMap` (`object`)
 
    Lets you customize the default key mapping of the editor.

@@ -1,39 +1,43 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, shrink-to-fit=no" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, shrink-to-fit=no" />
 
-        <title>MarkdownArea - the tiniest Markdown editor for the Web</title>
+    <title>MarkdownArea - the tiniest Markdown editor for the Web</title>
 
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet" />
-        <style type="text/css">
-            .ctrl-key::before {
-                content: 'Ctrl';
-            }
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+          crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet" />
+    <style type="text/css">
+      .ctrl-key::before {
+        content: 'Ctrl';
+      }
 
-            body.mac .ctrl-key::before {
-                font-size: 1.7em;
-                line-height: 1;
-                vertical-align: middle;
-                content: '⌘';
-            }
+      body.mac .ctrl-key::before {
+        font-size: 1.7em;
+        line-height: 1;
+        vertical-align: middle;
+        content: '⌘';
+      }
 
-            #mdarea {
-                font-family: 'Source Code Pro', monospace;
-            }
-        </style>
-        <script type="application/javascript" src="./mdarea.js"></script>
-    </head>
-    <body class="pb-5">
-        <script type="application/javascript">/mac|ipad|iphone|ipod/i.test(navigator.platform) && document.body.classList.add('mac');</script>
+      #mdarea {
+        font-family: 'Source Code Pro', monospace;
+      }
+    </style>
+    <script type="application/javascript" src="./dist/index.js"></script>
+  </head>
+  <body class="pb-5">
+    <script type="application/javascript">/mac|ipad|iphone|ipod/i.test(navigator.platform) && document.body.classList.add(
+      'mac');</script>
 
-        <div class="container">
-            <h1 class="my-5">MarkdownArea <small class="text-muted">by @jahůdka</small></h1>
+    <div class="container">
+      <h1 class="my-5">MarkdownArea <small class="text-muted">by @jahůdka</small></h1>
 
-            <div class="row">
-                <div class="col-md-6">
+      <div class="row">
+        <div class="col-md-7">
                     <textarea id="mdarea" class="form-control" cols="80" rows="15" autofocus># Hello!
 
 This is a live demo of [MarkdownArea] - the tiniest Markdown editor for the Web.
@@ -44,69 +48,78 @@ To try the features, just start typing anywhere in this textarea! For example, y
  - Try putting the caret at the end of this line and hitting enter
 
 Some of the more advanced features include:
- 1. Code formatting helpers: try putting the caret between the
-    parentheses in the following code block and pressing enter:
+ 1. Code formatting helpers: try putting the caret between the parentheses in the following code block and pressing enter:
     ```js
     if ('awesome' in window.MarkdownArea) {}
     ```
  2. Also, numbered lists work as you'd expect..
 
 [MarkdownArea]: https://github.com/jahudka/mdarea</textarea>
-                </div>
-                <div class="col-md-6 mt-4 mt-md-0">
-                    <h3>Options:</h3>
-
-                    <ul id="options" class="pl-3">
-                        <li class="form-check">
-                            <input type="checkbox" id="o-use-tab" class="form-check-input" checked value="use_tab" />
-                            <label for="o-use-tab" class="form-check-label">
-                                Use the <code>Tab</code> key for indentation
-                            </label>
-                            <small class="form-text text-muted">
-                                Indentation will always work using <code><span class="ctrl-key"></span>+M</code>
-                                and <code><span class="ctrl-key"></span>+Shift+M</code>.
-                            </small>
-                        </li>
-                        <li class="form-check">
-                            <input type="checkbox" id="o-enable-inline" class="form-check-input" checked value="enable_inline" />
-                            <label for="o-enable-inline" class="form-check-label">
-                                Enable inline helpers
-                            </label>
-                            <small class="form-text text-muted">
-                                Inline helpers include inserting pairs of <code>*</code>, <code>_</code>
-                                and <code>`</code> characters<br />and inserting matching closing parentheses.
-                            </small>
-                        </li>
-                    </ul>
-                </div>
-            </div>
         </div>
+        <div class="col-md-5 mt-4 mt-md-0">
+          <h3>Options:</h3>
 
-        <script type="application/javascript">
-            (function() {
-            	var options = {
-            		keyMap: {}
-                };
+          <ul id="options" class="pl-3">
+            <li class="form-check">
+              <input type="checkbox" id="o-use-tab" class="form-check-input" checked value="use_tab" />
+              <label for="o-use-tab" class="form-check-label">
+                Use the <code>Tab</code> key for indentation
+              </label>
+              <small class="form-text text-muted">
+                Indentation will always work using <code><span class="ctrl-key"></span>+M</code>
+                and <code><span class="ctrl-key"></span>+Shift+M</code>.
+              </small>
+            </li>
+            <li class="form-check">
+              <input type="checkbox" id="o-enable-inline" class="form-check-input" checked value="enable_inline" />
+              <label for="o-enable-inline" class="form-check-label">
+                Enable inline helpers
+              </label>
+              <small class="form-text text-muted">
+                Inline helpers include inserting pairs of <code>*</code>, <code>_</code>
+                and <code>`</code> characters<br />and inserting matching closing parentheses.
+              </small>
+            </li>
+          </ul>
 
-            	var elem = document.getElementById('mdarea');
-            	var editor = new MarkdownArea(elem, options);
+          <h4>More info:</h4>
+          <ul>
+            <li>
+              <a href="https://github.com/jahudka/mdarea">GitHub repository</a>
+            </li>
+            <li>
+              <code>npm install --save mdarea</code>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
 
-            	document.getElementById('options').addEventListener('change', function (evt) {
-            		editor.destroy();
+    <script type="application/javascript">
+      (function () {
+        const options = {
+          keyMap: {}
+        };
 
-                    switch (evt.target.value) {
-                        case 'use_tab':
-                        	options.keyMap.indent = evt.target.checked ? ['Tab', 'Ctrl+m'] : ['Ctrl+m'];
-                        	options.keyMap.outdent = evt.target.checked ? ['Shift+Tab', 'Ctrl+Shift+m'] : ['Ctrl+Shift+m'];
-                        	break;
-                        case 'enable_inline':
-                        	options.keyMap.inline = evt.target.checked ? null : [];
-                        	break;
-                    }
+        const elem = document.getElementById('mdarea');
+        let editor = new MarkdownArea(elem, options);
 
-                    editor = new MarkdownArea(elem, options);
-				});
-            })();
-        </script>
-    </body>
+        document.getElementById('options').addEventListener('change', function (evt) {
+          editor.destroy();
+
+          switch (evt.target.value) {
+            case 'use_tab':
+              options.keyMap.indent = evt.target.checked ? ['Tab', 'Ctrl+m'] : ['Ctrl+m'];
+              options.keyMap.outdent = evt.target.checked ? ['Shift+Tab', 'Ctrl+Shift+m'] : ['Ctrl+Shift+m'];
+              break;
+            case 'enable_inline':
+              options.keyMap.inline = evt.target.checked ? null : [];
+              break;
+          }
+
+          editor = new MarkdownArea(elem, options);
+        });
+      })();
+    </script>
+  </body>
 </html>

@@ -6,7 +6,7 @@
     "type": "vcs",
     "url": "https://github.com/jahudka/mdarea"
   },
-  "version": "2.0.0",
+  "version": "2.0.1",
   "main": "dist/index.min.js",
   "types": "dist/index.d.ts",
   "devDependencies": {

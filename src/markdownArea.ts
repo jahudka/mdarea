@@ -5,22 +5,25 @@ import {
   handleKey,
   handleUndo,
   normalizeOptions,
+  resetHistory,
 } from './utils';
 
 export class MarkdownArea {
-  private ed: Editor;
+  private readonly ed: Editor;
 
   constructor(elem: HTMLTextAreaElement, maybeOptions?: MarkdownAreaOptions) {
     const options = normalizeOptions(maybeOptions);
 
-    const editor = this.ed = {
+    const editor: Editor = this.ed = {
       elem,
       options,
       helper: createHelper(),
       reOutdent: new RegExp('^' + options.indent, 'mg'),
-      init: false,
+      history: [],
+      state: undefined,
+      idx: -1,
       lock: false,
-    } as Editor;
+    } as any;
 
     editor.onInput = handleInput.bind(null, editor);
     editor.onKeyDown = handleKey.bind(null, editor);
@@ -44,8 +47,7 @@ export class MarkdownArea {
     this.ed.elem = elem;
     elem.addEventListener('keydown', this.ed.onKeyDown);
     elem.addEventListener('input', this.ed.onInput);
-    this.ed.helper.textContent = '';
-    this.ed.init = false;
+    resetHistory(this.ed);
   }
 
   getValue() : string {
@@ -56,8 +58,7 @@ export class MarkdownArea {
     this.ed.elem.value = value;
 
     if (!keepUndo) {
-      this.ed.helper.textContent = '';
-      this.ed.init = false;
+      resetHistory(this.ed);
     }
   }
 
@@ -66,7 +67,7 @@ export class MarkdownArea {
     this.ed.elem.removeEventListener('input', this.ed.onInput);
     this.ed.helper.removeEventListener('input', this.ed.onUndo);
     document.body.removeChild(this.ed.helper);
-    Object.assign(this.ed, { elem: null, helper: null, options: null, reOutdent: null, onKeyDown: null, onInput: null, onUndo: null });
+    Object.assign(this.ed, { elem: null, helper: null, options: null, reOutdent: null, onKeyDown: null, onInput: null, onUndo: null, history: null });
     Object.assign(this, { ed: null });
     return null;
   }

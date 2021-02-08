@@ -10,7 +10,7 @@ export function createHelper() : HTMLDivElement {
 
   if (process.env.CI) {
     helper.style.position = 'fixed';
-    helper.style.overflow = helper.style.visibility = 'hidden';
+    helper.style.overflow = 'hidden';
     helper.style.left = '-1000px';
     helper.style.top = '50%';
     helper.style.width = helper.style.height = '1px';
@@ -34,10 +34,6 @@ export function extractState(elem: HTMLTextAreaElement, committed: boolean = fal
 export function pushState(ed: Editor, v: string, s: number, e: number = s) : void {
   ed.lock = true;
 
-  if (process.env.CI) {
-    ed.helper.style.visibility = '';
-  }
-
   commitState(ed, {
     s,
     e,
@@ -46,10 +42,6 @@ export function pushState(ed: Editor, v: string, s: number, e: number = s) : voi
     y: ed.elem.scrollTop,
     c: true,
   }, true);
-
-  if (process.env.CI) {
-    ed.helper.style.visibility = 'hidden';
-  }
 
   ed.lock = false;
 }

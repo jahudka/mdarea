@@ -105,13 +105,13 @@ Tab or the Right arrow.
             document.getElementById('version').textContent = MarkdownArea.version;
 
             const db = [
-              '@jahudka',
               '@askvortsov1',
+              '@anthony.hopkins',
+              '@ashley.black',
+              '@jahudka',
               '@james.bond',
               '@tony.stark',
               '@tonya.graves',
-              '@ashley.black',
-              '@anthony.hopkins',
             ];
 
             const loader = (prefix, signal) => {
@@ -138,7 +138,7 @@ Tab or the Right arrow.
 
             const options = {
               keyMap: {},
-              extensions: [new MarkdownAreaSuggest(loader, { start: '@', content: '[a-zA-Z0-9._]*' })],
+              extensions: [new MarkdownAreaSuggest(loader, { pattern: '@[a-zA-Z0-9._]*' })],
             };
 
             const elem = document.getElementById('mdarea');

@@ -1,27 +1,31 @@
-export type MarkdownAreaOptions = {
+import { MarkdownArea } from './markdownArea';
+
+export type EditorOptions = {
   indent?: string | number;
-  keyMap?: Partial<MarkdownAreaKeymap>;
+  keyMap?: Partial<Keymap>;
   extensions?: MarkdownAreaExtension[];
 };
 
-export type MarkdownAreaAction = 'enter' | 'indent' | 'outdent' | 'inline';
-export type MarkdownAreaKey = string | string[];
+export type EditorAction = 'enter' | 'indent' | 'outdent' | 'inline';
 
-export type MarkdownAreaKeymap = {
-  [A in MarkdownAreaAction]: MarkdownAreaKey;
+export type Keymap = {
+  [A in EditorAction]: string | string[];
 };
 
 export interface MarkdownAreaExtension {
+  init?(editor: MarkdownArea) : void;
+  cleanup?(editor: MarkdownArea) : void;
+  destroy?() : void;
+
   handleKey(
-    editor: Editor,
     prefix: string,
     selection: string,
     postfix: string,
     evt: KeyboardEvent,
-  ): MarkdownAreaState | undefined;
+  ) : NewState | undefined;
 }
 
-export type MarkdownAreaState = {
+export type NewState = {
   v: string;
   s: number;
   e?: number;
@@ -67,8 +71,8 @@ export type KeyCombo = {
 };
 
 export type NormalisedKeyMap = {
-  key: KeyCombo ,
-  action: MarkdownAreaAction;
+  key: KeyCombo,
+  action: EditorAction;
 }[];
 
 export type LineInfo = {

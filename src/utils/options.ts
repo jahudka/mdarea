@@ -1,38 +1,38 @@
 import {
   KeyCombo,
-  MarkdownAreaKeymap,
-  MarkdownAreaOptions,
+  Keymap,
+  EditorOptions,
   NormalisedKeyMap,
   NormalisedOptions,
 } from '../types';
-import { defaultExtension } from './markdown';
+import { MDAreaExtension } from './markdown';
 
 export const isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform);
 export const isFfox = /firefox/i.test(navigator.userAgent);
 export const ctrlKey = isMac ? 'metaKey' : 'ctrlKey';
 
-const defaultKeymap: MarkdownAreaKeymap = {
+const defaultKeymap: Keymap = {
   enter: ['Enter', 'Shift+Enter'],
   indent: ['Tab', 'Cmd+m'],
   outdent: ['Shift+Tab', 'Cmd+Shift+m'],
   inline: ['"', "'", '`', '*', '_', '[', ']', '(', ')', '{', '}', '<', '>'],
 };
 
-export function normalizeOptions(options: MarkdownAreaOptions = {}): NormalisedOptions {
+export function normalizeOptions(options: EditorOptions = {}): NormalisedOptions {
   const indent = normalizeIndent(options.indent);
-  const extensions = options.extensions || [];
 
-  extensions.push(defaultExtension);
-
-  return {
+  const o = {
     indent,
     reOutdent: new RegExp('^' + indent, 'mg'),
     keyMap: normalizeKeyMap(options.keyMap),
-    extensions,
-  }
+    extensions: options.extensions || [],
+  };
+
+  o.extensions.push(new MDAreaExtension(o));
+  return o;
 }
 
-function normalizeKeyMap(keyMap: Partial<MarkdownAreaKeymap> = {}) : NormalisedKeyMap {
+function normalizeKeyMap(keyMap: Partial<Keymap> = {}) : NormalisedKeyMap {
   const knownKeys = {};
   const list : NormalisedKeyMap = [];
 

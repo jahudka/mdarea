@@ -1,4 +1,4 @@
-import { Editor, EditorState, MarkdownAreaState } from '../types';
+import { Editor, EditorState, NewState } from '../types';
 import { ctrlKey, isFfox } from './options';
 
 export function createHelper() : HTMLDivElement {
@@ -32,7 +32,7 @@ export function extractState(elem: HTMLTextAreaElement, committed: boolean = fal
   };
 }
 
-export function pushState(ed: Editor, state: MarkdownAreaState) : void {
+export function pushState(ed: Editor, state: NewState) : void {
   ed.lock = true;
 
   const e = state.e === undefined ? state.s : state.e;
@@ -67,7 +67,7 @@ export function handleKey(ed: Editor, evt: KeyboardEvent) : void {
     postfix = state.v.substring(state.e);
 
   for (let i = 0, n = ed.options.extensions.length; i < n; i++) {
-    const result = ed.options.extensions[i].handleKey(ed, prefix, selection, postfix, evt);
+    const result = ed.options.extensions[i].handleKey(prefix, selection, postfix, evt);
 
     if (result) {
       evt.preventDefault();

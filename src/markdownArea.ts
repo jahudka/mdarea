@@ -1,10 +1,11 @@
-import { Editor, MarkdownAreaOptions } from './types';
+import { Editor, EditorOptions, NewState } from './types';
 import {
   createHelper,
   handleInput,
   handleKey,
   handleUndo,
   normalizeOptions,
+  pushState,
   resetHistory,
 } from './utils';
 import { version as v } from './env';
@@ -12,7 +13,7 @@ import { version as v } from './env';
 export class MarkdownArea {
   private readonly ed: Editor;
 
-  constructor(elem: HTMLTextAreaElement, maybeOptions?: MarkdownAreaOptions) {
+  constructor(elem: HTMLTextAreaElement, maybeOptions?: EditorOptions) {
     const options = normalizeOptions(maybeOptions);
 
     const editor: Editor = this.ed = {
@@ -40,6 +41,7 @@ export class MarkdownArea {
 
   setElement(elem: HTMLTextAreaElement) : void {
     if (this.ed.elem) {
+      this.ed.options.extensions.forEach(ext => ext.cleanup && ext.cleanup(this));
       this.ed.elem.removeEventListener('input', this.ed.onInput);
       this.ed.elem.removeEventListener('keydown', this.ed.onKeyDown);
     }
@@ -48,6 +50,7 @@ export class MarkdownArea {
     elem.addEventListener('keydown', this.ed.onKeyDown);
     elem.addEventListener('input', this.ed.onInput);
     resetHistory(this.ed);
+    this.ed.options.extensions.forEach(ext => ext.init && ext.init(this));
   }
 
   getValue() : string {
@@ -62,11 +65,17 @@ export class MarkdownArea {
     }
   }
 
+  pushState(state: NewState) : void {
+    pushState(this.ed, state);
+  }
+
   destroy() : null {
+    this.ed.options.extensions.forEach(ext => ext.cleanup && ext.cleanup(this));
     this.ed.elem.removeEventListener('keydown', this.ed.onKeyDown);
     this.ed.elem.removeEventListener('input', this.ed.onInput);
     this.ed.helper.removeEventListener('input', this.ed.onUndo);
     document.body.removeChild(this.ed.helper);
+    this.ed.options.extensions.forEach(ext => ext.destroy && ext.destroy());
     Object.assign(this.ed, { elem: null, helper: null, options: null, reOutdent: null, onKeyDown: null, onInput: null, onUndo: null, history: null });
     Object.assign(this, { ed: null });
     return null;

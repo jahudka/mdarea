@@ -1,4 +1,10 @@
-import { Editor, KeyCombo, LineInfo, MarkdownAreaExtension, MarkdownAreaState } from '../types';
+import {
+  KeyCombo,
+  LineInfo,
+  MarkdownAreaExtension,
+  NewState,
+  NormalisedOptions,
+} from '../types';
 
 const rePrefix = /^[ \t]*(?:(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?|>[ \t]*)*(?::[ \t]*)?/;
 const reList = /(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?$/;
@@ -15,12 +21,12 @@ const openingParens = {'[': ']', '(': ')', '{': '}', '<': '>'};
 const closingParens = {']': '[', ')': '(', '}': '{', '>': '<'};
 
 const enter = (
-  ed: Editor,
+  options: NormalisedOptions,
   prefix: string,
   selection: string,
   postfix: string,
   evt: KeyboardEvent,
-): MarkdownAreaState => {
+): NewState => {
   const info = !selection ? getLineInfo(prefix) : null;
 
   if (info) {
@@ -29,7 +35,7 @@ const enter = (
       postfix = "\n" + base + postfix;
 
       if (!evt.shiftKey) {
-        prefix += "\n" + base + ed.options.indent;
+        prefix += "\n" + base + options.indent;
       }
     } else if (info.prefix) {
       if (!evt.shiftKey && info.prefix === info.line && reListEnd.test(postfix)) {
@@ -50,11 +56,11 @@ const enter = (
 }
 
 const indent = (
-  ed: Editor,
+  options: NormalisedOptions,
   prefix: string,
   selection: string,
   postfix: string,
-): MarkdownAreaState => {
+): NewState => {
   let s = prefix.length,
     n = prefix.lastIndexOf("\n") + 1;
 
@@ -64,13 +70,13 @@ const indent = (
   }
 
   if (n < s || !selection) {
-    s += ed.options.indent.length;
+    s += options.indent.length;
   }
 
   if (selection) {
-    selection = selection.replace(reMkIndent, ed.options.indent);
+    selection = selection.replace(reMkIndent, options.indent);
   } else {
-    prefix += ed.options.indent;
+    prefix += options.indent;
   }
 
   return {
@@ -81,11 +87,11 @@ const indent = (
 }
 
 const outdent = (
-  ed: Editor,
+  options: NormalisedOptions,
   prefix: string,
   selection: string,
   postfix: string,
-): MarkdownAreaState => {
+): NewState => {
   let s = prefix.length,
     n = prefix.lastIndexOf("\n") + 1;
 
@@ -93,12 +99,13 @@ const outdent = (
     selection = prefix.substring(n) + selection;
     prefix = prefix.substring(0, n);
 
-    if (selection.substring(0, ed.options.indent.length) === ed.options.indent) {
-      s -= ed.options.indent.length;
+    if (selection.substring(0, options.indent.length) === options.indent) {
+      s -= options.indent.length;
     }
   }
 
-  selection = selection.replace(ed.options.reOutdent, '');
+  selection = selection.replace(options.reOutdent, '');
+
   return {
     v: prefix + selection + postfix,
     s,
@@ -107,12 +114,12 @@ const outdent = (
 }
 
 const inline = (
-  ed: Editor,
+  options: NormalisedOptions,
   prefix: string,
   selection: string,
   postfix: string,
   evt: KeyboardEvent,
-): MarkdownAreaState => {
+): NewState => {
   if (!selection && !(evt.key in openingParens) && postfix.charAt(0) === evt.key) {
     return {
       v: prefix + (reDoubledInline.test(evt.key) ? evt.key + evt.key : '') + postfix,
@@ -153,23 +160,28 @@ const actions = {
   inline,
 }
 
-export const defaultExtension: MarkdownAreaExtension = {
+export class MDAreaExtension implements MarkdownAreaExtension {
+  private readonly options: NormalisedOptions;
+
+  constructor(options: NormalisedOptions) {
+    this.options = options;
+  }
+
   handleKey(
-    ed: Editor,
     prefix: string,
     selection: string,
     postfix: string,
     evt: KeyboardEvent,
-  ): MarkdownAreaState | undefined {
-    const shortcut = ed.options.keyMap.find((shortcut) => matchesKey(evt, shortcut.key));
+  ): NewState | undefined {
+    const shortcut = this.options.keyMap.find((shortcut) => matchesKey(evt, shortcut.key));
 
     if (!shortcut || !actions[shortcut.action]) {
       return undefined;
     }
 
-    return actions[shortcut.action](ed, prefix, selection, postfix, evt);
+    return actions[shortcut.action](this.options, prefix, selection, postfix, evt);
   }
-};
+}
 
 function matchesKey(evt: KeyboardEvent, key: KeyCombo) {
   for (const prop in key) if (key.hasOwnProperty(prop)) {

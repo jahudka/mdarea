@@ -28,9 +28,10 @@
   ],
   "scripts": {
     "build:cleanup": "rimraf dist",
-    "build:compile": "rollup -c",
-    "build:types": "dts-bundle-generator --config dtsconfig.json",
-    "build": "run-s build:cleanup build:compile build:types",
+    "build:compile:rollup": "rollup -c",
+    "build:compile:types": "dts-bundle-generator --config dtsconfig.json",
+    "build:compile": "run-p build:compile:rollup build:compile:types",
+    "build": "run-s build:cleanup build:compile",
     "start": "rollup -c --watch"
   }
 }

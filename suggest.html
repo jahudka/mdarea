@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, shrink-to-fit=no" />
+
+        <title>MarkdownArea - the tiniest Markdown editor for the Web</title>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha256-T/zFmO5s/0aSwc6ics2KLxlfbewyRz6UNw1s3Ppf5gE=" crossorigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet" />
+        <style type="text/css">
+            .ctrl-key::before {
+                content: 'Ctrl';
+            }
+
+            body.mac .ctrl-key::before {
+                font-size: 1.7em;
+                line-height: 1;
+                vertical-align: middle;
+                content: '⌘';
+            }
+
+            h1 small {
+                font-size: 0.5em;
+            }
+
+            #mdarea {
+                font-family: 'Source Code Pro', monospace;
+            }
+        </style>
+        <script src="https://cdn.jsdelivr.net/npm/mdarea@2.0.9/dist/index.min.js"></script>
+        <script src="./suggest/index.min.js"></script>
+    </head>
+    <body class="pb-5">
+        <script type="application/javascript">/mac|ipad|iphone|ipod/i.test(navigator.platform) && document.body.classList.add('mac');</script>
+
+        <div class="container">
+            <h1 class="my-5">MarkdownArea <small class="text-muted"><span id="version"></span> by @jahůdka</small></h1>
+
+            <div class="row">
+                <div class="col-md-7">
+                    <textarea id="mdarea" class="form-control" cols="80" rows="15" autofocus># Hello!
+
+This is a live demo of the *MarkdownAreaSuggest* plugin.
+
+It's really just me messing around.. but it does work,
+to some extent. Try typing '@' anywhere in here.
+
+## Controls
+
+**SPOILER ALERT**
+
+Don't read further before you've tried figuring out
+how to use this without help! I want to know if
+it's as intuitive to others as it is to me.
+
+To select different suggestions use the Up and Down
+arrows. To cancel suggestions use Escape or the Left
+arrow. To accept the current suggestion use Enter,
+Tab or the Right arrow.
+
+</textarea>
+                </div>
+                <div class="col-md-5 mt-4 mt-md-0">
+                    <h3>Options:</h3>
+
+                    <ul id="options" class="pl-3">
+                        <li class="form-check">
+                            <input type="checkbox" id="o-use-tab" class="form-check-input" checked value="use_tab" />
+                            <label for="o-use-tab" class="form-check-label">
+                                Use the <code>Tab</code> key for indentation
+                            </label>
+                            <small class="form-text text-muted">
+                                Indentation will always work using <code><span class="ctrl-key"></span>+M</code>
+                                and <code><span class="ctrl-key"></span>+Shift+M</code>.
+                            </small>
+                        </li>
+                        <li class="form-check">
+                            <input type="checkbox" id="o-enable-inline" class="form-check-input" checked value="enable_inline" />
+                            <label for="o-enable-inline" class="form-check-label">
+                                Enable inline helpers
+                            </label>
+                            <small class="form-text text-muted">
+                                Inline helpers include inserting pairs of <code>*</code>, <code>_</code>
+                                and <code>`</code> characters<br />and inserting matching closing parentheses.
+                            </small>
+                        </li>
+                    </ul>
+
+                    <h4>More info:</h4>
+                    <ul>
+                        <li>
+                            <a href="https://github.com/jahudka/mdarea">GitHub repository</a>
+                        </li>
+                        <li>
+                            <code>npm install --save mdarea</code>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <script type="application/javascript">
+          (function () {
+            document.getElementById('version').textContent = MarkdownArea.version;
+
+            const db = [
+              '@jahudka',
+              '@askvortsov1',
+              '@james.bond',
+              '@tony.stark',
+              '@tonya.graves',
+              '@ashley.black',
+              '@anthony.hopkins',
+            ];
+
+            const loader = (prefix, signal) => {
+              if (!prefix || prefix === '@') {
+                return db;
+              }
+
+              return new Promise((resolve, reject) => {
+                const tmr = setTimeout(() => {
+                  if (/err/i.test(prefix)) {
+                    reject(new Error('Error loading mentions!'));
+                  } else {
+                    const pattern = new RegExp('^' + prefix.replace(/[\-\[\]\/{}()*+?.\\^$|]/g, '\\$&'), 'i');
+                    resolve(db.filter(n => pattern.test(n)).sort());
+                  }
+                }, 50 + Math.random() * 200);
+
+                signal.addEventListener('abort', () => {
+                  clearTimeout(tmr);
+                  reject({ type: 'abort', message: 'Aborted' });
+                });
+              });
+            };
+
+            const options = {
+              keyMap: {},
+              extensions: [new MarkdownAreaSuggest(loader, { start: '@', content: '[a-zA-Z0-9._]*' })],
+            };
+
+            const elem = document.getElementById('mdarea');
+            let editor = new MarkdownArea(elem, options);
+
+            document.getElementById('options').addEventListener('change', function (evt) {
+              editor.destroy();
+
+              switch (evt.target.value) {
+                case 'use_tab':
+                  options.keyMap.indent = evt.target.checked ? ['Tab', 'Ctrl+m'] : ['Ctrl+m'];
+                  options.keyMap.outdent = evt.target.checked ? ['Shift+Tab', 'Ctrl+Shift+m'] : ['Ctrl+Shift+m'];
+                  break;
+                case 'enable_inline':
+                  options.keyMap.inline = evt.target.checked ? null : [];
+                  break;
+              }
+
+              editor = new MarkdownArea(elem, options);
+            });
+          })();
+        </script>
+    </body>
+</html>

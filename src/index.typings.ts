@@ -2,10 +2,4 @@ import { MarkdownArea } from './markdownArea';
 
 export default MarkdownArea;
 
-export {
-  MarkdownAreaOptions,
-  MarkdownAreaKeymap,
-  MarkdownAreaActions,
-  MarkdownAreaActionHandler,
-  MarkdownAreaActionResult,
-} from './types';
+export { MarkdownAreaOptions, MarkdownAreaKeymap, MarkdownAreaKey, MarkdownAreaAction } from './types';

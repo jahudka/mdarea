@@ -25,8 +25,8 @@ export class MarkdownArea {
       lock: false,
     } as any;
 
-    editor.onInput = handleInput.bind(null, editor);
     editor.onKeyDown = handleKey.bind(null, editor);
+    editor.onInput = handleInput.bind(null, editor);
     editor.onUndo = handleUndo.bind(null, editor);
 
     editor.helper.addEventListener('input', editor.onUndo);

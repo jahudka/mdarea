@@ -1,5 +1,5 @@
-import { Editor, EditorState, MarkdownAreaActionResult } from '../types';
-import { ctrlKey, isFfox, matchesKey } from './options';
+import { Editor, EditorState, MarkdownAreaState } from '../types';
+import { ctrlKey, isFfox } from './options';
 
 export function createHelper() : HTMLDivElement {
   const helper = document.createElement('div');
@@ -32,7 +32,7 @@ export function extractState(elem: HTMLTextAreaElement, committed: boolean = fal
   };
 }
 
-export function pushState(ed: Editor, state: MarkdownAreaActionResult) : void {
+export function pushState(ed: Editor, state: MarkdownAreaState) : void {
   ed.lock = true;
 
   const e = state.e === undefined ? state.s : state.e;
@@ -57,11 +57,6 @@ export function handleKey(ed: Editor, evt: KeyboardEvent) : void {
 
   if (isFfox && evt[ctrlKey] && evt.key === 'z') {
     ed.elem.blur();
-  }
-
-  const shortcut = ed.options.keyMap.find((shortcut) => matchesKey(evt, shortcut.key));
-
-  if (!shortcut || !ed.options.actions[shortcut.action]) {
     return;
   }
 
@@ -71,11 +66,14 @@ export function handleKey(ed: Editor, evt: KeyboardEvent) : void {
     selection = state.v.substring(state.s, state.e),
     postfix = state.v.substring(state.e);
 
-  const result = ed.options.actions[shortcut.action]!(ed.options, prefix, selection, postfix, evt);
+  for (let i = 0, n = ed.options.extensions.length; i < n; i++) {
+    const result = ed.options.extensions[i].handleKey(ed, prefix, selection, postfix, evt);
 
-  if (result) {
-    evt.preventDefault();
-    pushState(ed, result);
+    if (result) {
+      evt.preventDefault();
+      pushState(ed, result);
+      break;
+    }
   }
 }
 

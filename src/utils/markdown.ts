@@ -1,4 +1,4 @@
-import { LineInfo, MarkdownAreaActionResult, NormalisedOptions } from '../types';
+import { Editor, KeyCombo, LineInfo, MarkdownAreaExtension, MarkdownAreaState } from '../types';
 
 const rePrefix = /^[ \t]*(?:(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?|>[ \t]*)*(?::[ \t]*)?/;
 const reList = /(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?$/;
@@ -14,8 +14,13 @@ const codeBlocks = {'`': /^``$/m, '~': /^~~$/m};
 const openingParens = {'[': ']', '(': ')', '{': '}', '<': '>'};
 const closingParens = {']': '[', ')': '(', '}': '{', '>': '<'};
 
-export function handleEnterKey(options: NormalisedOptions, prefix: string, selection: string, postfix: string,
-  evt: KeyboardEvent) : MarkdownAreaActionResult {
+const enter = (
+  ed: Editor,
+  prefix: string,
+  selection: string,
+  postfix: string,
+  evt: KeyboardEvent,
+): MarkdownAreaState => {
   const info = !selection ? getLineInfo(prefix) : null;
 
   if (info) {
@@ -24,7 +29,7 @@ export function handleEnterKey(options: NormalisedOptions, prefix: string, selec
       postfix = "\n" + base + postfix;
 
       if (!evt.shiftKey) {
-        prefix += "\n" + base + options.indent;
+        prefix += "\n" + base + ed.options.indent;
       }
     } else if (info.prefix) {
       if (!evt.shiftKey && info.prefix === info.line && reListEnd.test(postfix)) {
@@ -41,10 +46,15 @@ export function handleEnterKey(options: NormalisedOptions, prefix: string, selec
     prefix += "\n";
   }
 
-  return { v: prefix + postfix, s: prefix.length };
+  return {v: prefix + postfix, s: prefix.length};
 }
 
-export function handleIndentKey(options: NormalisedOptions, prefix: string, selection: string, postfix: string) : MarkdownAreaActionResult {
+const indent = (
+  ed: Editor,
+  prefix: string,
+  selection: string,
+  postfix: string,
+): MarkdownAreaState => {
   let s = prefix.length,
     n = prefix.lastIndexOf("\n") + 1;
 
@@ -54,23 +64,28 @@ export function handleIndentKey(options: NormalisedOptions, prefix: string, sele
   }
 
   if (n < s || !selection) {
-    s += options.indent.length;
+    s += ed.options.indent.length;
   }
 
   if (selection) {
-    selection = selection.replace(reMkIndent, options.indent);
+    selection = selection.replace(reMkIndent, ed.options.indent);
   } else {
-    prefix += options.indent;
+    prefix += ed.options.indent;
   }
 
   return {
     v: prefix + selection + postfix,
     s,
-    e: selection ? n + selection.length : s
+    e: selection ? n + selection.length : s,
   };
 }
 
-export function handleOutdentKey(options: NormalisedOptions, prefix: string, selection: string, postfix: string) : MarkdownAreaActionResult {
+const outdent = (
+  ed: Editor,
+  prefix: string,
+  selection: string,
+  postfix: string,
+): MarkdownAreaState => {
   let s = prefix.length,
     n = prefix.lastIndexOf("\n") + 1;
 
@@ -78,12 +93,12 @@ export function handleOutdentKey(options: NormalisedOptions, prefix: string, sel
     selection = prefix.substring(n) + selection;
     prefix = prefix.substring(0, n);
 
-    if (selection.substring(0, options.indent.length) === options.indent) {
-      s -= options.indent.length;
+    if (selection.substring(0, ed.options.indent.length) === ed.options.indent) {
+      s -= ed.options.indent.length;
     }
   }
 
-  selection = selection.replace(options.reOutdent, '');
+  selection = selection.replace(ed.options.reOutdent, '');
   return {
     v: prefix + selection + postfix,
     s,
@@ -91,7 +106,13 @@ export function handleOutdentKey(options: NormalisedOptions, prefix: string, sel
   };
 }
 
-export function handleInlineKey(options: NormalisedOptions, prefix: string, selection: string, postfix: string, evt: KeyboardEvent) : MarkdownAreaActionResult {
+const inline = (
+  ed: Editor,
+  prefix: string,
+  selection: string,
+  postfix: string,
+  evt: KeyboardEvent,
+): MarkdownAreaState => {
   if (!selection && !(evt.key in openingParens) && postfix.charAt(0) === evt.key) {
     return {
       v: prefix + (reDoubledInline.test(evt.key) ? evt.key + evt.key : '') + postfix,
@@ -104,7 +125,9 @@ export function handleInlineKey(options: NormalisedOptions, prefix: string, sele
     };
   } else if (!selection && evt.key in codeBlocks && codeBlocks[evt.key].test(prefix)) {
     return {
-      v: prefix + evt.key + "language\n" + evt.key + evt.key + evt.key + (postfix.charAt(0) !== "\n" ? "\n" : '') + postfix,
+      v: prefix + evt.key + "language\n" + evt.key + evt.key + evt.key + (postfix.charAt(0) !== "\n"
+        ? "\n"
+        : '') + postfix,
       s: prefix.length + 1,
       e: prefix.length + 9,
     };
@@ -123,7 +146,42 @@ export function handleInlineKey(options: NormalisedOptions, prefix: string, sele
   }
 }
 
-function getLineInfo(str: string) : LineInfo {
+const actions = {
+  enter,
+  indent,
+  outdent,
+  inline,
+}
+
+export const defaultExtension: MarkdownAreaExtension = {
+  handleKey(
+    ed: Editor,
+    prefix: string,
+    selection: string,
+    postfix: string,
+    evt: KeyboardEvent,
+  ): MarkdownAreaState | undefined {
+    const shortcut = ed.options.keyMap.find((shortcut) => matchesKey(evt, shortcut.key));
+
+    if (!shortcut || !actions[shortcut.action]) {
+      return undefined;
+    }
+
+    return actions[shortcut.action](ed, prefix, selection, postfix, evt);
+  }
+};
+
+function matchesKey(evt: KeyboardEvent, key: KeyCombo) {
+  for (const prop in key) if (key.hasOwnProperty(prop)) {
+    if (evt[prop] !== key[prop]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function getLineInfo(str: string): LineInfo {
   const offset = str.lastIndexOf("\n") + 1,
     line = str.substring(offset),
     m = rePrefix.exec(line);
@@ -131,24 +189,24 @@ function getLineInfo(str: string) : LineInfo {
   return {
     line,
     offset,
-    prefix: m && m[0]
+    prefix: m && m[0],
   };
 }
 
-function isList(prefix: string) : boolean {
+function isList(prefix: string): boolean {
   return reList.test(prefix);
 }
 
-function toIndent(prefix: string, pure: boolean) : string {
+function toIndent(prefix: string, pure: boolean): string {
   return prefix.replace(pure ? rePureIndent : reCleanIndent, ' ');
 }
 
-function increment(prefix: string) : string {
+function increment(prefix: string): string {
   return prefix.replace(reIncrement, function (_, n) {
     return (parseInt(n) + 1) + '.';
   })
 }
 
-function stripLast(prefix: string) : string {
+function stripLast(prefix: string): string {
   return prefix.replace(reStripLast, '');
 }

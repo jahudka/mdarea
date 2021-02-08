@@ -78,11 +78,10 @@ export function handleKey(ed: Editor, evt: KeyboardEvent) : void {
 }
 
 export function handleInput(ed: Editor, evt: InputEvent) : void {
-  if (ed.lock) {
+  if (ed.lock || evt.type === 'insertFromPaste') {
     return;
   }
 
-  evt.preventDefault();
   ed.lock = true;
 
   const next = extractState(ed.elem);

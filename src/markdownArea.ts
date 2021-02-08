@@ -19,7 +19,6 @@ export class MarkdownArea {
       elem,
       options,
       helper: createHelper(),
-      reOutdent: new RegExp('^' + options.indent, 'mg'),
       history: [],
       state: undefined,
       idx: -1,

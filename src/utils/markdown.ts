@@ -1,6 +1,4 @@
-import { Editor, LineInfo } from '../types';
-import { ctrlKey, isFfox, matchesKey } from './options';
-import { extractState, pushState } from './dom';
+import { LineInfo, MarkdownAreaActionResult, NormalisedOptions } from '../types';
 
 const rePrefix = /^[ \t]*(?:(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?|>[ \t]*)*(?::[ \t]*)?/;
 const reList = /(?:[-+*]|\d+\.)[ \t]+(?:\[[ x]][ \t]+)?$/;
@@ -16,46 +14,8 @@ const codeBlocks = {'`': /^``$/m, '~': /^~~$/m};
 const openingParens = {'[': ']', '(': ')', '{': '}', '<': '>'};
 const closingParens = {']': '[', ')': '(', '}': '{', '>': '<'};
 
-export function handleKey(ed: Editor, evt: KeyboardEvent) : void {
-  if (!ed.elem || evt.defaultPrevented) {
-    return;
-  }
-
-  if (isFfox && evt[ctrlKey] && evt.key === 'z') {
-    ed.elem.blur();
-  }
-
-  const shortcut = ed.options.keyMap.find((shortcut) => matchesKey(evt, shortcut.key));
-
-  if (!shortcut) {
-    return;
-  }
-
-  const state = extractState(ed.elem);
-
-  const prefix = state.v.substring(0, state.s),
-    selection = state.v.substring(state.s, state.e),
-    postfix = state.v.substring(state.e);
-
-  switch (shortcut.action) {
-    case 'enter':
-      handleEnterKey(ed, prefix, selection, postfix, evt.shiftKey);
-      break;
-    case 'indent':
-      handleIndentKey(ed, prefix, selection, postfix);
-      break;
-    case 'outdent':
-      handleOutdentKey(ed, prefix, selection, postfix);
-      break;
-    case 'inline':
-      handleInlineKey(ed, prefix, selection, postfix, evt.key);
-      break;
-  }
-
-  evt.preventDefault();
-}
-
-function handleEnterKey(ed: Editor, prefix: string, selection: string, postfix: string, shiftKey: boolean) : void {
+export function handleEnterKey(options: NormalisedOptions, prefix: string, selection: string, postfix: string,
+  evt: KeyboardEvent) : MarkdownAreaActionResult {
   const info = !selection ? getLineInfo(prefix) : null;
 
   if (info) {
@@ -63,16 +23,16 @@ function handleEnterKey(ed: Editor, prefix: string, selection: string, postfix: 
       const base = (info.prefix ? toIndent(info.prefix, true) : '');
       postfix = "\n" + base + postfix;
 
-      if (!shiftKey) {
-        prefix += "\n" + base + ed.options.indent;
+      if (!evt.shiftKey) {
+        prefix += "\n" + base + options.indent;
       }
     } else if (info.prefix) {
-      if (!shiftKey && info.prefix === info.line && reListEnd.test(postfix)) {
+      if (!evt.shiftKey && info.prefix === info.line && reListEnd.test(postfix)) {
         prefix = prefix.substring(0, info.offset) + stripLast(info.prefix);
-      } else if (!shiftKey && isList(info.prefix)) {
+      } else if (!evt.shiftKey && isList(info.prefix)) {
         prefix += "\n" + increment(info.prefix);
       } else {
-        prefix += "\n" + toIndent(info.prefix, shiftKey);
+        prefix += "\n" + toIndent(info.prefix, evt.shiftKey);
       }
     } else {
       prefix += "\n";
@@ -81,10 +41,10 @@ function handleEnterKey(ed: Editor, prefix: string, selection: string, postfix: 
     prefix += "\n";
   }
 
-  pushState(ed, prefix + postfix, prefix.length);
+  return { v: prefix + postfix, s: prefix.length };
 }
 
-function handleIndentKey(ed: Editor, prefix: string, selection: string, postfix: string) : void {
+export function handleIndentKey(options: NormalisedOptions, prefix: string, selection: string, postfix: string) : MarkdownAreaActionResult {
   let s = prefix.length,
     n = prefix.lastIndexOf("\n") + 1;
 
@@ -94,19 +54,23 @@ function handleIndentKey(ed: Editor, prefix: string, selection: string, postfix:
   }
 
   if (n < s || !selection) {
-    s += ed.options.indent.length;
+    s += options.indent.length;
   }
 
   if (selection) {
-    selection = selection.replace(reMkIndent, ed.options.indent);
+    selection = selection.replace(reMkIndent, options.indent);
   } else {
-    prefix += ed.options.indent;
+    prefix += options.indent;
   }
 
-  pushState(ed, prefix + selection + postfix, s, selection ? n + selection.length : s);
+  return {
+    v: prefix + selection + postfix,
+    s,
+    e: selection ? n + selection.length : s
+  };
 }
 
-function handleOutdentKey(ed: Editor, prefix: string, selection: string, postfix: string) : void {
+export function handleOutdentKey(options: NormalisedOptions, prefix: string, selection: string, postfix: string) : MarkdownAreaActionResult {
   let s = prefix.length,
     n = prefix.lastIndexOf("\n") + 1;
 
@@ -114,34 +78,48 @@ function handleOutdentKey(ed: Editor, prefix: string, selection: string, postfix
     selection = prefix.substring(n) + selection;
     prefix = prefix.substring(0, n);
 
-    if (selection.substring(0, ed.options.indent.length) === ed.options.indent) {
-      s -= ed.options.indent.length;
+    if (selection.substring(0, options.indent.length) === options.indent) {
+      s -= options.indent.length;
     }
   }
 
-  selection = selection.replace(ed.reOutdent, '');
-  pushState(ed, prefix + selection + postfix, s, n + selection.length);
+  selection = selection.replace(options.reOutdent, '');
+  return {
+    v: prefix + selection + postfix,
+    s,
+    e: n + selection.length,
+  };
 }
 
-function handleInlineKey(ed: Editor, prefix: string, selection: string, postfix: string, key: string) : void {
-  if (!selection && !(key in openingParens) && postfix.charAt(0) === key) {
-    pushState(ed, prefix + (reDoubledInline.test(key) ? key + key : '') + postfix, prefix.length + 1);
-  } else if (!selection && (key === "'" && !reSingleQuotePrefix.test(prefix) || key in closingParens)) {
-    pushState(ed, prefix + key + postfix, prefix.length + 1);
-  } else if (!selection && key in codeBlocks && codeBlocks[key].test(prefix)) {
-    pushState(ed, prefix + key + "language\n" + key + key + key + (postfix.charAt(0) !== "\n" ? "\n" : '') + postfix, prefix.length + 1, prefix.length + 9);
-  } else if (key === prefix.slice(-1) && key === postfix.slice(0, 1)) {
-    pushState(ed,
-      prefix.slice(0, -1) + selection + postfix.slice(1),
-      prefix.length - 1,
-      prefix.length - 1 + selection.length
-    );
+export function handleInlineKey(options: NormalisedOptions, prefix: string, selection: string, postfix: string, evt: KeyboardEvent) : MarkdownAreaActionResult {
+  if (!selection && !(evt.key in openingParens) && postfix.charAt(0) === evt.key) {
+    return {
+      v: prefix + (reDoubledInline.test(evt.key) ? evt.key + evt.key : '') + postfix,
+      s: prefix.length + 1,
+    }
+  } else if (!selection && (evt.key === "'" && !reSingleQuotePrefix.test(prefix) || evt.key in closingParens)) {
+    return {
+      v: prefix + evt.key + postfix,
+      s: prefix.length + 1,
+    };
+  } else if (!selection && evt.key in codeBlocks && codeBlocks[evt.key].test(prefix)) {
+    return {
+      v: prefix + evt.key + "language\n" + evt.key + evt.key + evt.key + (postfix.charAt(0) !== "\n" ? "\n" : '') + postfix,
+      s: prefix.length + 1,
+      e: prefix.length + 9,
+    };
+  } else if (evt.key === prefix.slice(-1) && evt.key === postfix.slice(0, 1)) {
+    return {
+      v: prefix.slice(0, -1) + selection + postfix.slice(1),
+      s: prefix.length - 1,
+      e: prefix.length - 1 + selection.length,
+    };
   } else {
-    pushState(ed,
-      prefix + (closingParens[key] || key) + selection + (openingParens[key] || key) + postfix,
-      prefix.length + 1,
-      prefix.length + 1 + selection.length
-    );
+    return {
+      v: prefix + (closingParens[evt.key] || evt.key) + selection + (openingParens[evt.key] || evt.key) + postfix,
+      s: prefix.length + 1,
+      e: prefix.length + 1 + selection.length,
+    };
   }
 }
 

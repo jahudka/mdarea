@@ -1,20 +1,37 @@
 export type MarkdownAreaOptions = {
   indent?: string | number;
   keyMap?: Partial<MarkdownAreaKeymap>;
+  actions?: Partial<MarkdownAreaActions>;
 };
 
-export type MarkdownAreaAction = 'enter' | 'indent' | 'outdent' | 'inline';
-export type MarkdownAreaKey = string | string[];
-
 export type MarkdownAreaKeymap = {
-  [A in MarkdownAreaAction]: MarkdownAreaKey;
+  [action: string]: string | string[];
+};
+
+export type MarkdownAreaActions = {
+  [action: string]: MarkdownAreaActionHandler | null;
+};
+
+export type MarkdownAreaActionHandler = (
+  options: NormalisedOptions,
+  prefix: string,
+  selection: string,
+  postfix: string,
+  evt: KeyboardEvent,
+) => MarkdownAreaActionResult | undefined | null;
+
+export type MarkdownAreaActionResult = {
+  v: string;
+  s: number;
+  e?: number;
+  x?: number;
+  y?: number;
 };
 
 export type Editor = {
   elem: HTMLTextAreaElement;
   helper: HTMLDivElement;
   options: NormalisedOptions;
-  reOutdent: RegExp;
   onKeyDown: (evt: KeyboardEvent) => void;
   onInput: (evt: InputEvent) => void;
   onUndo: (evt: InputEvent) => void;
@@ -35,7 +52,9 @@ export type EditorState = {
 
 export type NormalisedOptions = {
   indent: string;
+  reOutdent: RegExp;
   keyMap: NormalisedKeyMap;
+  actions: MarkdownAreaActions;
 };
 
 export type KeyCombo = {
@@ -48,7 +67,7 @@ export type KeyCombo = {
 
 export type NormalisedKeyMap = {
   key: KeyCombo ,
-  action: MarkdownAreaAction;
+  action: string;
 }[];
 
 export type LineInfo = {

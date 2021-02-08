@@ -1,10 +1,11 @@
 import {
-  KeyCombo,
+  KeyCombo, MarkdownAreaActions,
   MarkdownAreaKeymap,
   MarkdownAreaOptions,
   NormalisedKeyMap,
   NormalisedOptions,
 } from '../types';
+import { handleEnterKey, handleIndentKey, handleInlineKey, handleOutdentKey } from './markdown';
 
 export const isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform);
 export const isFfox = /firefox/i.test(navigator.userAgent);
@@ -17,10 +18,21 @@ const defaultKeymap: MarkdownAreaKeymap = {
   inline: ['"', "'", '`', '*', '_', '[', ']', '(', ')', '{', '}', '<', '>'],
 };
 
+const defaultActions: MarkdownAreaActions = {
+  enter: handleEnterKey,
+  indent: handleIndentKey,
+  outdent: handleOutdentKey,
+  inline: handleInlineKey,
+};
+
 export function normalizeOptions(options: MarkdownAreaOptions = {}): NormalisedOptions {
+  const indent = normalizeIndent(options.indent);
+
   return {
-    indent: normalizeIndent(options.indent),
+    indent,
+    reOutdent: new RegExp('^' + indent, 'mg'),
     keyMap: normalizeKeyMap(options.keyMap),
+    actions: normalizeActions(options.actions),
   }
 }
 
@@ -28,20 +40,14 @@ function normalizeKeyMap(keyMap: Partial<MarkdownAreaKeymap> = {}) : NormalisedK
   const knownKeys = {};
   const list : NormalisedKeyMap = [];
 
+  for (let action in keyMap) if (keyMap.hasOwnProperty(action)) {
+    registerActionKeys(list, knownKeys, action, keyMap[action]);
+  }
+
   for (let action in defaultKeymap) if (defaultKeymap.hasOwnProperty(action)) {
-    let keys = keyMap[action] || defaultKeymap[action];
-
-    if (!Array.isArray(keys)) {
-      keys = keys.toString().trim().split(/\s*[|,]\s*/g);
+    if (keyMap[action] === undefined) {
+      registerActionKeys(list, knownKeys, action, defaultKeymap[action]);
     }
-
-    list.push.apply(list, keys.map((key: string) => {
-      const combo = normalizeKey(key);
-      combo.key in knownKeys || (knownKeys[combo.key] = 0);
-      ++knownKeys[combo.key];
-
-      return { key: combo, action };
-    }));
   }
 
   list.forEach((shortcut) => {
@@ -51,6 +57,25 @@ function normalizeKeyMap(keyMap: Partial<MarkdownAreaKeymap> = {}) : NormalisedK
   });
 
   return list;
+}
+
+function registerActionKeys(
+  list: NormalisedKeyMap,
+  knownKeys: Record<string, number>,
+  action: string,
+  keys?: string | string[],
+): void {
+  if (!Array.isArray(keys)) {
+    keys = keys ? keys.toString().trim().split(/\s*[|,]\s*/g) : [];
+  }
+
+  keys.length && list.push.apply(list, keys.map((key: string) => {
+    const combo = normalizeKey(key);
+    combo.key in knownKeys || (knownKeys[combo.key] = 0);
+    ++knownKeys[combo.key];
+
+    return { key: combo, action };
+  }));
 }
 
 function normalizeKey(key: string) : KeyCombo {
@@ -88,6 +113,26 @@ function normalizeIndent(indent: string | number = 4) : string {
   }
 
   return new Array(indent + 1).join(' ');
+}
+
+function normalizeActions(actions: Partial<MarkdownAreaActions> = {}) : MarkdownAreaActions {
+  const map: MarkdownAreaActions = {};
+
+  for (let action in actions) if (actions.hasOwnProperty(action)) {
+    const handler = actions[action];
+
+    if (handler !== undefined) {
+      map[action] = handler;
+    }
+  }
+
+  for (let action in defaultActions) if (defaultActions.hasOwnProperty(action)) {
+    if (map[action] === undefined) {
+      map[action] = defaultActions[action];
+    }
+  }
+
+  return map;
 }
 
 export function matchesKey(evt: KeyboardEvent, key: KeyCombo) {

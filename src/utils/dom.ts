@@ -7,12 +7,16 @@ export function createHelper() : HTMLDivElement {
   helper.contentEditable = true as any;
   helper.textContent = '0';
   helper.addEventListener('focus', () => setTimeout(() => helper.blur(), 0));
-  helper.style.position = 'fixed';
-  helper.style.overflow = helper.style.visibility = 'hidden';
-  helper.style.left = '-1000px';
-  helper.style.top = '50%';
-  helper.style.width = helper.style.height = '1px';
-  helper.style.opacity = '0';
+
+  if (process.env.CI) {
+    helper.style.position = 'fixed';
+    helper.style.overflow = helper.style.visibility = 'hidden';
+    helper.style.left = '-1000px';
+    helper.style.top = '50%';
+    helper.style.width = helper.style.height = '1px';
+    helper.style.opacity = '0';
+  }
+
   return helper;
 }
 
@@ -29,7 +33,10 @@ export function extractState(elem: HTMLTextAreaElement, committed: boolean = fal
 
 export function pushState(ed: Editor, v: string, s: number, e: number = s) : void {
   ed.lock = true;
-  ed.helper.style.visibility = '';
+
+  if (process.env.CI) {
+    ed.helper.style.visibility = '';
+  }
 
   commitState(ed, {
     s,
@@ -40,7 +47,10 @@ export function pushState(ed: Editor, v: string, s: number, e: number = s) : voi
     c: true,
   }, true);
 
-  ed.helper.style.visibility = 'hidden';
+  if (process.env.CI) {
+    ed.helper.style.visibility = 'hidden';
+  }
+
   ed.lock = false;
 }
 

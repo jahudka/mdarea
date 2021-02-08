@@ -30,6 +30,7 @@
     "build:cleanup": "rimraf dist",
     "build:compile": "rollup -c",
     "build:types": "dts-bundle-generator --config dtsconfig.json",
-    "build": "run-s build:cleanup build:compile build:types"
+    "build": "run-s build:cleanup build:compile build:types",
+    "start": "rollup -c --watch"
   }
 }

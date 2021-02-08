@@ -6,8 +6,16 @@ const { version } = require('./package.json');
 
 const opts = {
   delimiters: ['', ''],
-  "'dev-master'": `'${version}'`,
 };
+
+if (process.env.CI) {
+  opts["'dev-master'"] = `'${version.replace(/^v?/, 'v')}'`;
+  opts['!process.env.CI'] = 'false';
+  opts['process.env.CI'] = 'true';
+} else {
+  opts['!process.env.CI'] = 'true';
+  opts['process.env.CI'] = 'false';
+}
 
 export default [
   {

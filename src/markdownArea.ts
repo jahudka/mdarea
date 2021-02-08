@@ -7,7 +7,7 @@ import {
   normalizeOptions,
   resetHistory,
 } from './utils';
-import { version as v } from './version';
+import { version as v } from './env';
 
 export class MarkdownArea {
   private readonly ed: Editor;

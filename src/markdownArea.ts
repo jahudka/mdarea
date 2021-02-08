@@ -7,6 +7,7 @@ import {
   normalizeOptions,
   resetHistory,
 } from './utils';
+import { version as v } from './version';
 
 export class MarkdownArea {
   private readonly ed: Editor;
@@ -71,4 +72,8 @@ export class MarkdownArea {
     Object.assign(this, { ed: null });
     return null;
   }
+}
+
+export namespace MarkdownArea {
+  export const version: string = v;
 }

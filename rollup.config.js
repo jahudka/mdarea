@@ -1,10 +1,18 @@
+import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 import { terser } from 'rollup-plugin-terser';
+
+const { version } = require('./package.json');
+
+const opts = {
+  delimiters: ['', ''],
+  "'dev-master'": `'${version}'`,
+};
 
 export default [
   {
     input: 'src/index.ts',
-    plugins: [typescript()],
+    plugins: [replace(opts), typescript()],
     output: {
       file: 'dist/index.js',
       format: 'umd',
@@ -14,7 +22,7 @@ export default [
   },
   {
     input: 'src/index.ts',
-    plugins: [typescript(), terser()],
+    plugins: [replace(opts), typescript(), terser()],
     output: {
       file: 'dist/index.min.js',
       format: 'umd',

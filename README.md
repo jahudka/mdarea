@@ -28,7 +28,7 @@ as the default export and type declarations for the options object
 are available as named exports:
 
 ```typescript
-import MarkdownArea, { MarkdownAreaOptions } from 'mdarea';
+import MarkdownArea, { EditorOptions } from 'mdarea';
 ```
 
 Initialise your textareas like this:

@@ -44,6 +44,8 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create release archive
         run: zip mdarea dist
       - name: Upload release archive
@@ -53,6 +55,8 @@ jobs:
           asset_path: ./mdarea.zip
           asset_name: mdarea.zip
           asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   npm-release:
     name: Publish NPM package
     needs: build

@@ -22,7 +22,7 @@ export default [
     input: 'src/index.ts',
     plugins: [replace(opts), typescript()],
     output: {
-      file: 'dist/index.js',
+      file: 'dist/mdarea.js',
       format: 'umd',
       name: 'MarkdownArea',
       sourcemap: true,
@@ -32,7 +32,7 @@ export default [
     input: 'src/index.ts',
     plugins: [replace(opts), typescript(), terser()],
     output: {
-      file: 'dist/index.min.js',
+      file: 'dist/mdarea.min.js',
       format: 'umd',
       name: 'MarkdownArea',
       sourcemap: true,

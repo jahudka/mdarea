@@ -5,7 +5,7 @@
   "entries": [
     {
       "filePath": "src/index.typings.ts",
-      "outFile": "dist/index.d.ts",
+      "outFile": "dist/mdarea.d.ts",
       "output": {
         "umdModuleName": "MarkdownArea"
       }

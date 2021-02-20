@@ -37,7 +37,7 @@ Initialise your textareas like this:
 <textarea id="mdarea"></textarea>
 
 <script type="application/javascript">
-    var editor = new MarkdownArea(document.getElementById('mdarea'));
+    const editor = new MarkdownArea(document.getElementById('mdarea'));
 </script>
 ```
 
@@ -113,7 +113,7 @@ The four currently supported actions of the editor are:
  - `enter` (default keys: `Enter`, `Shift+Enter`)
 
    This action takes care of smart `Enter` key handling.
-   Invoked inside of a list item it will insert a new item
+   Invoked inside a list item it will insert a new item
    at the current level, incrementing its number if applicable,
    or an indented newline within the current item if the `Shift`
    key is pressed. If invoked at the start of an empty list item
